@@ -3,8 +3,8 @@
 > **📥 Download this template**: [COMP2850-submission-template.md](/downloads/COMP2850-submission-template.md)
 > Right-click the link above and select "Save link as..." to download the template file.
 
-**Student**: [Your name and student ID]
-**Submission date**: [DD/MM/YYYY]
+**Student**: [youssef elghaish, 201847757]
+**Submission date**: [19/1/2026]
 **Academic Year**: 2025-26
 
 ---
@@ -25,47 +25,101 @@
 ### Link to Needs-Finding (LO2)
 
 **Week 6 Job Story #1**:
-> [Paste your Week 6 job story here - the one that informed your first task]
+> [### Job Stories
+
+**Story #1 (Add tasks quickly)**  
+When I’m capturing a task during a busy moment,  
+I want to add it quickly without losing my place,  
+so I can keep momentum and not forget what I was doing,  
+because interruptions make me drop tasks.
+
+**Story #2 (Avoid blank/invalid submissions)**  
+When I submit the add-task form by mistake,  
+I want a clear error message that tells me what to fix,  
+so I can recover immediately,  
+because silent failures waste time and cause confusion.
+
+**Story #3 (Know actions succeeded)**  
+When I add, edit, or delete a task,  
+I want confirmation that the action succeeded,  
+so I can trust the system state,  
+because otherwise I have to re-check the list to be sure.
+
+**Story #4 (Keyboard-only efficiency)**  
+When I’m navigating by keyboard only,  
+I want the focus order to be logical and efficient,  
+so I can complete tasks without excessive tabbing,  
+because long keyboard journeys are tiring and error-prone.
+
+**Story #5 (Screen reader clarity)**  
+When I’m using a screen reader to manage tasks,  
+I want buttons and controls to have specific labels and announcements,  
+so I can understand what each control will do,  
+because repeated “button” labels without context are confusing.
+]
 
 **How Task 1 tests this**:
 [1 sentence explaining link]
 
 ---
 
-### Evaluation Tasks (4-5 tasks)
+### Pilot Study – Planning
 
-#### Task 1 (T1): [Task Name]
+**Task 1 — Add a task (baseline)**  
+**Scenario:** You have 3 quick errands to remember before leaving home.  
+**Action:** Add three tasks: “Buy milk”, “Post parcel”, “Call bank”.  
+**Success Criteria:** All 3 appear in the list; you receive clear feedback that they were added.  
+**Target Time:** 40 seconds  
+**Linked to:** Story #1, Story #3  
 
-- **Scenario**: [Brief context - what person needs to do]
-- **Action**: [Specific instruction - what to tell participant]
-- **Success**: [Observable outcome - how you know it worked]
-- **Target time**: [e.g., <10 seconds]
-- **Linked to**: [Week 6 Job Story #X]
+---
 
-#### Task 2 (T2): [Task Name]
+**Task 2 — Trigger validation + recover**  
+**Scenario:** You accidentally try to add an empty task.  
+**Action:** Submit the add-task form with no text (or spaces), then correct it by adding “Pay rent”.  
+**Success Criteria:** A clear error message appears; after correction, “Pay rent” is added successfully.  
+**Target Time:** 35 seconds  
+**Linked to:** Story #2, Story #3  
 
-- **Scenario**:
-- **Action**:
-- **Success**:
-- **Target time**:
-- **Linked to**:
+---
 
-#### Task 3 (T3): [Task Name]
+**Task 3 — Edit an existing task**  
+**Scenario:** You wrote something unclear and want to improve it.  
+**Action:** Edit “Call bank” to “Call bank about card replacement”.  
+**Success Criteria:** The updated task text is visible; you get a confirmation message.  
+**Target Time:** 45 seconds  
+**Linked to:** Story #3, Story #4, Story #5  
 
-- **Scenario**:
-- **Action**:
-- **Success**:
-- **Target time**:
-- **Linked to**:
+---
 
-[Add Tasks 4-5 as needed]
+**Task 4 — Delete a task**  
+**Scenario:** You completed an errand and want it removed.  
+**Action:** Delete “Post parcel”.  
+**Success Criteria:** The task disappears; you get confirmation it was deleted.  
+**Target Time:** 25 seconds  
+**Linked to:** Story #3, Story #4, Story #5  
+
 
 ---
 
 ### Consent Script (They Read Verbatim)
 
-**Introduction**:
-"Thank you for participating in my HCI evaluation. This will take about 15 minutes. I'm testing my task management interface, not you. There are no right or wrong answers."
+**Consent Script**
+
+Hi, thanks for helping with my COMP2850 HCI evaluation.
+
+This is a short study of a task manager web app.
+
+I’m collecting anonymous interaction logs (task steps and timings) using a session ID like `P1_xxxx`. No names, emails, or personal data are collected.
+
+I may take screenshots of the interface, but I will crop or blur anything that could identify you.
+
+Your participation is voluntary and you can stop at any time without giving a reason.
+
+The study takes about 5–10 minutes.
+
+Do I have your consent to proceed?
+
 
 **Rights**:
 - [ ] "Your participation is voluntary. You can stop at any time without giving a reason."
@@ -79,15 +133,14 @@
 
 ## 2. Findings Table
 
-**Instructions**: Fill in this table with 3-5 findings from your pilots. Link each finding to data sources.
+| Finding | Data Source | Observation (Quote/Timestamp) | WCAG | Impact (1–5) | Inclusion (1–5) | Effort (1–5) | Priority |
+|---------|-------------|--------------------------------|------|--------------|------------------|--------------|----------|
+| Error messages unclear | P1 notes 03:12 | P1: "It didn’t tell me what I did wrong" | 3.3.1 Level A | 5 | 5 | 2 | 8 |
+| No confirmation after delete | P2 notes 06:44 | P2: "Did it delete or not?" | 3.2.4 Level A | 4 | 4 | 2 | 6 |
+| Edit affordance not obvious | P1 notes 04:55 | P1: "I didn’t know I could edit that" | 2.4.6 Level AA | 4 | 4 | 3 | 5 |
+| Validation accepts whitespace | metrics.csv L61–64 | Empty tasks allowed | 3.3.1 Level A | 5 | 4 | 2 | 7 |
+| No keyboard focus styling | P2 notes 08:10 | P2: "I lost where I was tabbing" | 2.4.7 Level AA | 3 | 5 | 3 | 5 |
 
-| Finding | Data Source | Observation (Quote/Timestamp) | WCAG | Impact (1-5) | Inclusion (1-5) | Effort (1-5) | Priority |
-|---------|-------------|------------------------------|------|--------------|-----------------|--------------|----------|
-| SR errors not announced | metrics.csv L47-49 + P2 notes 14:23 | P2: "I didn't hear any error" | 3.3.1 Level A | 5 | 5 | 3 | 7 |
-| [Your finding 2] | [Link to metrics.csv line OR pilot notes] | [Participant quote + timestamp] | [WCAG criterion] | [1-5] | [1-5] | [1-5] | [Score] |
-| [Your finding 3] | | | | | | | |
-| [Your finding 4] | | | | | | | |
-| [Your finding 5] | | | | | | | |
 
 **Priority formula**: (Impact + Inclusion) - Effort
 
@@ -95,6 +148,46 @@
 1. [Finding #X - Priority score Y]
 2. [Finding #X - Priority score Y]
 3. [Finding #X - Priority score Y]
+
+## 3. Redesign Plan
+
+Based on the findings from the pilot studies, three high-priority issues were selected for redesign.
+
+
+### Issue 1 — Unclear Error Messages (WCAG 3.3.1)
+
+**Finding reference:** Error messages unclear  
+**Problem:** Participants were confused when submitting empty tasks and did not understand how to recover.  
+**Redesign decision:** Add inline validation with a clear error message and visual emphasis.  
+**Expected benefit:** Users immediately understand what went wrong and how to fix it.  
+**WCAG link:** 3.3.1 Error Identification (Level A)  
+**Effort:** Low  
+
+---
+
+### Issue 2 — No Confirmation After Delete (WCAG 3.2.4)
+
+**Finding reference:** No confirmation after delete  
+**Problem:** Users were unsure whether a task had been successfully deleted.  
+**Redesign decision:** Add a toast-style confirmation message after delete actions.  
+**Expected benefit:** Clear system feedback improves user confidence and reduces repeated actions.  
+**WCAG link:** 3.2.4 Consistent Identification (Level A)  
+**Effort:** Low  
+
+---
+
+### Issue 3 — Edit Affordance Not Obvious (WCAG 2.4.6)
+
+**Finding reference:** Edit affordance not obvious  
+**Problem:** Users did not realise tasks were editable.  
+**Redesign decision:** Add a visible edit icon next to each task and a tooltip on hover.  
+**Expected benefit:** Discoverability of the edit feature improves and reduces hesitation.  
+**WCAG link:** 2.4.6 Headings and Labels (Level AA)  
+**Effort:** Medium  
+
+---
+
+These redesign changes directly address high-impact accessibility and usability problems observed during pilot testing and are feasible within the implementation timeframe.
 
 ---
 
