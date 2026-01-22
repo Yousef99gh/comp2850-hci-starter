@@ -10,10 +10,13 @@
         hx-post="/tasks"
         hx-target="#task-list"
         hx-swap="beforeend">
-    <label for="title">Title</label>
-    <input type="text" id="title" name="title" required
-           placeholder="e.g., Buy milk" aria-describedby="title-hint">
-    <small id="title-hint">Keep it short and specific.</small>
+   <label for="title">Title</label>
+<input type="text" id="title" name="title" required
+       placeholder="e.g., Buy milk" aria-describedby="title-hint taskError">
+
+<small id="title-hint">Keep it short and specific.</small>
+
+<div id="taskError" class="error" role="alert" aria-live="polite" hidden></div>
     {# Minor issue: unlabeled input for Week 7 Lab 2 #}
     <input type="text" name="priority" placeholder="Priority (optional)">
     <button type="submit">Add Task</button>
@@ -31,21 +34,24 @@
 <section aria-labelledby="list-heading">
   <h2 id="list-heading">Current tasks ({{ tasks | length }})</h2>
   {# Minor Issue: Image without alt text for Week 7 Lab 2 discovery #}
-  <img src="/static/img/icon.png" width="16" height="16">
+  <img src="/static/img/icon.png" width="16" height="16" alt="" aria-hidden="true">
+
   <ul id="task-list">
-    {% for task in tasks %}
-      <li id="task-{{ task.id }}">
-        <span>{{ task.title }}</span>
-        <form action="/tasks/{{ task.id }}/delete" method="post" style="display: inline;"
-              hx-post="/tasks/{{ task.id }}/delete"
-              hx-target="#task-{{ task.id }}"
-              hx-swap="outerHTML">
-          <button type="submit" aria-label="Delete task: {{ task.title }}">Delete</button>
-        </form>
-      </li>
+  {% for task in tasks %}
+    {% if editingId is defined and editingId == task.id %}
+      {% include "tasks/_edit.peb" %}
     {% else %}
-      <li>No tasks yet. Add one above!</li>
-    {% endfor %}
+      {% include "tasks/_item.peb" %}
+    {% endif %}
+  {% else %}
+    <li>No tasks yet. Add one above!</li>
+  {% endfor %}
   </ul>
 </section>
+
+
+<div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+
 {% endblock %}
+
+

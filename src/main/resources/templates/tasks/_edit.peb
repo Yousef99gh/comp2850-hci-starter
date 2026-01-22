@@ -1,0 +1,23 @@
+<li id="task-{{ task.id }}">
+  <form action="/tasks/{{ task.id }}/edit" method="post"
+        hx-post="/tasks/{{ task.id }}/edit"
+        hx-target="#task-{{ task.id }}"
+        hx-swap="outerHTML">
+
+    <label for="edit-title-{{ task.id }}">Edit title</label>
+    <input id="edit-title-{{ task.id }}"
+           name="title"
+           type="text"
+           value="{{ task.title }}"
+           required>
+
+    <button type="submit">Save</button>
+
+    <button type="button"
+            hx-get="/tasks/{{ task.id }}/view"
+            hx-target="#task-{{ task.id }}"
+            hx-swap="outerHTML">
+      Cancel
+    </button>
+  </form>
+</li>

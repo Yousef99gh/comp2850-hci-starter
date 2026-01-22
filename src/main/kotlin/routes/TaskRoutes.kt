@@ -9,43 +9,8 @@ import io.ktor.server.routing.*
 import io.pebbletemplates.pebble.PebbleEngine
 import java.io.StringWriter
 
-/**
- * NOTE FOR NON-INTELLIJ IDEs (VSCode, Eclipse, etc.):
- * IntelliJ IDEA automatically adds imports as you type. If using a different IDE,
- * you may need to manually add imports. The commented imports below show what you'll need
- * for future weeks. Uncomment them as needed when following the lab instructions.
- *
- * When using IntelliJ: You can ignore the commented imports below - your IDE will handle them.
- */
-
-// Week 7+ imports (inline edit, toggle completion):
-// import model.Task               // When Task becomes separate model class
-// import model.ValidationResult   // For validation errors
-// import renderTemplate            // Extension function from Main.kt
-// import isHtmxRequest             // Extension function from Main.kt
-
-// Week 8+ imports (pagination, search, URL encoding):
-// import io.ktor.http.encodeURLParameter  // For query parameter encoding
-// import utils.Page                       // Pagination helper class
-
-// Week 9+ imports (metrics logging, instrumentation):
-// import utils.jsMode              // Detect JS mode (htmx/nojs)
-// import utils.logValidationError  // Log validation failures
-// import utils.timed               // Measure request timing
-
-// Note: Solution repo uses storage.TaskStore instead of data.TaskRepository
-// You may refactor to this in Week 10 for production readiness
-
-/**
- * Week 6 Lab 1: Simple task routes with HTMX progressive enhancement.
- *
- * **Teaching approach**: Start simple, evolve incrementally
- * - Week 6: Basic CRUD with Int IDs
- * - Week 7: Add toggle, inline edit
- * - Week 8: Add pagination, search
- */
-
 fun Route.taskRoutes() {
+
     val pebble =
         PebbleEngine
             .Builder()
@@ -53,98 +18,165 @@ fun Route.taskRoutes() {
                 io.pebbletemplates.pebble.loader.ClasspathLoader().apply {
                     prefix = "templates/"
                 },
-            ).build()
+            )
+            .build()
 
-    /**
-     * Helper: Check if request is from HTMX
-     */
-    fun ApplicationCall.isHtmx(): Boolean = request.headers["HX-Request"]?.equals("true", ignoreCase = true) == true
+    fun render(templateName: String, model: Map<String, Any?>): String {
+        val template = pebble.getTemplate(templateName)
+        val writer = StringWriter()
+        template.evaluate(writer, model)
+        return writer.toString()
+    }
 
-    /**
-     * GET /tasks - List all tasks
-     * Returns full page (no HTMX differentiation in Week 6)
-     */
+    fun ApplicationCall.isHtmx(): Boolean =
+        request.headers["HX-Request"]?.equals("true", ignoreCase = true) == true
+
+    // GET /tasks
     get("/tasks") {
+        val editingId = call.request.queryParameters["editingId"]?.toIntOrNull()
+
         val model =
             mapOf(
                 "title" to "Tasks",
                 "tasks" to TaskRepository.all(),
+                "editingId" to editingId
             )
-        val template = pebble.getTemplate("tasks/index.peb")
-        val writer = StringWriter()
-        template.evaluate(writer, model)
-        call.respondText(writer.toString(), ContentType.Text.Html)
+
+        call.respondText(render("tasks/index.peb", model), ContentType.Text.Html)
     }
 
-    /**
-     * POST /tasks - Add new task
-     * Dual-mode: HTMX fragment or PRG redirect
-     */
+    // POST /tasks (add)
     post("/tasks") {
         val title = call.receiveParameters()["title"].orEmpty().trim()
 
         if (title.isBlank()) {
-            // Validation error handling
             if (call.isHtmx()) {
-                val error = """<div id="status" hx-swap-oob="true" role="alert" aria-live="assertive">
-                    Title is required. Please enter at least one character.
-                </div>"""
-                return@post call.respondText(error, ContentType.Text.Html, HttpStatusCode.BadRequest)
-            } else {
-                // No-JS: redirect back (could add error query param)
-                call.response.headers.append("Location", "/tasks")
-                return@post call.respond(HttpStatusCode.SeeOther)
+                val error = """
+<div id="taskError" class="error" hx-swap-oob="true" role="alert" aria-live="polite">
+  Task name can't be empty. Please type something like "Buy milk".
+</div>
+""".trimIndent()
+                return@post call.respondText(error, ContentType.Text.Html, HttpStatusCode.UnprocessableEntity)
             }
+
+            call.response.headers.append(HttpHeaders.Location, "/tasks")
+            return@post call.respond(HttpStatusCode.SeeOther)
         }
 
         val task = TaskRepository.add(title)
 
         if (call.isHtmx()) {
-            // Return HTML fragment for new task
-            val fragment = """<li id="task-${task.id}">
-                <span>${task.title}</span>
-                <form action="/tasks/${task.id}/delete" method="post" style="display: inline;"
-                      hx-post="/tasks/${task.id}/delete"
-                      hx-target="#task-${task.id}"
-                      hx-swap="outerHTML">
-                  <button type="submit" aria-label="Delete task: ${task.title}">Delete</button>
-                </form>
-            </li>"""
+            val fragment =
+                render(
+                    "tasks/_item.peb",
+                    mapOf("task" to task)
+                )
 
-            val status = """<div id="status" hx-swap-oob="true">Task "${task.title}" added successfully.</div>"""
+            val clearError = """
+<div id="taskError" class="error" hx-swap-oob="true" hidden></div>
+""".trimIndent()
 
-            return@post call.respondText(fragment + status, ContentType.Text.Html, HttpStatusCode.Created)
+            val toast = """
+<div id="toast" class="toast" hx-swap-oob="true" role="status" aria-live="polite">
+  Task "${task.title}" added.
+</div>
+""".trimIndent()
+
+            return@post call.respondText(fragment + clearError + toast, ContentType.Text.Html, HttpStatusCode.Created)
         }
 
-        // No-JS: POST-Redirect-GET pattern (303 See Other)
-        call.response.headers.append("Location", "/tasks")
+        call.response.headers.append(HttpHeaders.Location, "/tasks")
         call.respond(HttpStatusCode.SeeOther)
     }
 
-    /**
-     * POST /tasks/{id}/delete - Delete task
-     * Dual-mode: HTMX empty response or PRG redirect
-     */
+    // POST /tasks/{id}/delete
     post("/tasks/{id}/delete") {
         val id = call.parameters["id"]?.toIntOrNull()
         val removed = id?.let { TaskRepository.delete(it) } ?: false
 
         if (call.isHtmx()) {
             val message = if (removed) "Task deleted." else "Could not delete task."
-            val status = """<div id="status" hx-swap-oob="true">$message</div>"""
-            // Return empty content to trigger outerHTML swap (removes the <li>)
-            return@post call.respondText(status, ContentType.Text.Html)
+            val toast = """
+<div id="toast" class="toast" hx-swap-oob="true" role="status" aria-live="polite">
+  $message
+</div>
+""".trimIndent()
+
+            // empty body is fine when hx-swap="delete" or outerHTML removal is used in template
+            return@post call.respondText(toast, ContentType.Text.Html)
         }
 
-        // No-JS: POST-Redirect-GET pattern (303 See Other)
-        call.response.headers.append("Location", "/tasks")
+        call.response.headers.append(HttpHeaders.Location, "/tasks")
         call.respond(HttpStatusCode.SeeOther)
     }
 
-    // TODO: Week 7 Lab 1 Activity 2 Steps 2-5
-    // Add inline edit routes here
-    // Follow instructions in mdbook to implement:
-    // - GET /tasks/{id}/edit - Show edit form (dual-mode)
-    // - POST /tasks/{id}/edit - Save edits with validation (dual-mode)
-    // - GET /tasks/{id}/view - Cancel edit (HTMX only)
+    // GET /tasks/{id}/edit (enter edit mode)
+    get("/tasks/{id}/edit") {
+        val id = call.parameters["id"]?.toIntOrNull()
+        val task = id?.let { TaskRepository.find(it) }
+
+        if (task == null) return@get call.respond(HttpStatusCode.NotFound)
+
+        if (call.isHtmx()) {
+            val html = render("tasks/_edit.peb", mapOf("task" to task, "error" to null))
+            return@get call.respondText(html, ContentType.Text.Html)
+        }
+
+        call.response.headers.append(HttpHeaders.Location, "/tasks?editingId=${task.id}")
+        call.respond(HttpStatusCode.SeeOther)
+    }
+
+    // POST /tasks/{id}/edit (save edit)
+    post("/tasks/{id}/edit") {
+        val id = call.parameters["id"]?.toIntOrNull()
+        val newTitle = call.receiveParameters()["title"].orEmpty().trim()
+
+        if (id == null) return@post call.respond(HttpStatusCode.BadRequest)
+
+        val task = TaskRepository.find(id) ?: return@post call.respond(HttpStatusCode.NotFound)
+
+        if (newTitle.isBlank()) {
+            if (call.isHtmx()) {
+                val html = render("tasks/_edit.peb", mapOf("task" to task, "error" to "Title can't be empty."))
+                return@post call.respondText(html, ContentType.Text.Html, HttpStatusCode.UnprocessableEntity)
+            }
+
+            call.response.headers.append(HttpHeaders.Location, "/tasks?editingId=$id")
+            return@post call.respond(HttpStatusCode.SeeOther)
+        }
+
+        TaskRepository.update(id, newTitle)
+        val updated = TaskRepository.find(id) ?: return@post call.respond(HttpStatusCode.NotFound)
+
+        if (call.isHtmx()) {
+            val html = render("tasks/_item.peb", mapOf("task" to updated))
+
+            val toast = """
+<div id="toast" class="toast" hx-swap-oob="true" role="status" aria-live="polite">
+  Task updated.
+</div>
+""".trimIndent()
+
+            return@post call.respondText(html + toast, ContentType.Text.Html)
+        }
+
+        call.response.headers.append(HttpHeaders.Location, "/tasks")
+        call.respond(HttpStatusCode.SeeOther)
+    }
+
+    // GET /tasks/{id}/view (cancel edit)
+    get("/tasks/{id}/view") {
+        val id = call.parameters["id"]?.toIntOrNull()
+        val task = id?.let { TaskRepository.find(it) }
+
+        if (task == null) return@get call.respond(HttpStatusCode.NotFound)
+
+        if (call.isHtmx()) {
+            val html = render("tasks/_item.peb", mapOf("task" to task))
+            return@get call.respondText(html, ContentType.Text.Html)
+        }
+
+        call.response.headers.append(HttpHeaders.Location, "/tasks")
+        call.respond(HttpStatusCode.SeeOther)
+    }
 }

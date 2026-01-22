@@ -40,6 +40,20 @@
         {% endblock %}
     </main>
 
+<script>
+  // Auto-hide toast after HTMX updates
+  document.body.addEventListener("htmx:afterSwap", function () {
+    const toast = document.getElementById("toast");
+    if (!toast) return;
+    if (toast.hasAttribute("hidden")) return;
+
+    setTimeout(() => {
+      toast.setAttribute("hidden", "");
+      toast.textContent = "";
+    }, 2500);
+  });
+</script>
+
     <footer>
         <p>
             <small>
